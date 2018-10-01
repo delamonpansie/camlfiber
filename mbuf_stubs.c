@@ -145,7 +145,7 @@ static struct blob *blob_alloc() {
 }
 
 static int blob_avail(const struct blob *b) {
-        return blob_capa - (b->end - b->start);
+        return b->_data + blob_capa - b->end;
 }
 
 static int blob_size(const struct blob *b) {
@@ -670,7 +670,7 @@ static int
 iovec_for_recv(struct blob *b, struct iovec *iov) {
         struct iovec *start = iov;
         for (; b; b = b->next, iov++) {
-                iov->iov_base = b->start;
+                iov->iov_base = b->end;
                 iov->iov_len = blob_avail(b);
         }
         return iov - start;
@@ -705,13 +705,17 @@ adjust_iovec(struct iovec **iov, int *iovcnt, int size)
 
 int
 mbuf_recv(int fd, struct mbuf *c, int readahead) {
+        struct blob *tail = c->q.tail;
+
         /* extend with at least one blob */
         do {
                 mbuf_extend(c);
                 readahead -= blob_capa;
         } while (readahead > 0);
 
-        struct blob *tail = c->q.tail;
+        if (tail == NULL)
+                tail = c->q.head;
+
         struct iovec iov_buf[c->q.lenght], *iov = iov_buf;
         int iovcnt = iovec_for_recv(tail, iov);
 	ev_io io = { .coro = 1 };
