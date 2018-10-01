@@ -471,7 +471,7 @@ stub_mbuf_take_mbuf(value mb, value lenv)
         struct mbuf *src = Mb(mb),
                     *dst = Mb(ret);
 
-        if (mbuf_size(src) < len)
+        if (len < 0 || mbuf_size(src) < len)
                 caml_invalid_argument("Mbuf.take_mbuf");
 
         src->size -= len;
