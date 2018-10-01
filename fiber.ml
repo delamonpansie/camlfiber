@@ -149,9 +149,10 @@ module MVar = struct
 end
 
 module Unix = struct
-  include Unix
+  open Unix
 
-  external sleepf : float -> unit = "stub_fiber_sleep"
+  external stub_sleepf : float -> unit = "stub_fiber_sleep"
+  let sleepf = stub_sleepf
   let sleep s = sleepf (float s)
 
   let accept ?cloexec sock =
