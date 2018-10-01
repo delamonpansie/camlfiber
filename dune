@@ -1,0 +1,29 @@
+(library
+ (public_name fiber)
+ (modules Fiber Mbuf)
+ (libraries unix)
+ (c_names fiber_stubs mbuf_stubs fiber_ev fiber_coro)
+ (c_flags -D_GNU_SOURCE -O2 -g3 -Wall)
+ (wrapped false))
+
+(rule
+ (targets fiber_coro.c)
+ (deps libcoro/coro.c
+       libcoro/coro.h)
+ (action (copy fiber_coro.cx fiber_coro.c)))
+
+(rule
+ (targets fiber_ev.c)
+ (deps fiber_ev.h
+       libev/ev.c
+       libev/ev.h
+       libev/ev_vars.h
+       libev/config.h
+       libev/ev_epoll.c
+       libev/ev_poll.c
+       libev/ev_select.c)
+ (action (copy fiber_ev.cx fiber_ev.c)))
+
+;; Local Variables:
+;; mode: lisp
+;; End:

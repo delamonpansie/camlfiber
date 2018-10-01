@@ -1,0 +1,15 @@
+opam-version: "2.0"
+name: "camlfiber"
+version: "0.1.0"
+maintainer: "Yuriy Vostrikov <delamonpansie@gmail.com>"
+authors: "Yuriy Vostrikov <delamonpansie@gmail.com>"
+homepage: "https://github.com/delamonpansie/camlfiber"
+bug-reports: "https://github.com/delamonpansie/camlfiber"
+license: "BSD"
+dev-repo: "https://github.com/delamonpansie/camlfiber.git"
+build: [ [ dune "build" ] ]
+install: [ dune "install" ]
+remove: [ "ocamlfind" "remove" "fiber" ]
+depends: [
+  "ocamlfind" "jbuild" {build}
+]
