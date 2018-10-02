@@ -158,6 +158,7 @@ value stub_mbuf_blob_size(value unit) {
 
 struct mbuf {
         int size;
+        char busy;
         struct blob_tailq q;
 };
 
@@ -791,14 +792,20 @@ mbuf_send(int fd, struct mbuf *c) {
 value
 stub_mbuf_recv(value fd, value mb, value readahead) {
         CAMLparam2(mb, fd);
-        if (fiber->id == 1)
+        if (fiber->id == 1 || Mb(mb)->busy)
                 caml_invalid_argument("Mbuf.recv");
+        Mb(mb)->busy = 1;
+        /* GC can move `mb` while we waiting for io
+           readiness. Protect from it by copying value
+           to stack. Since we're operating on a copy,
+           disallow concurent access to a mbuf. */
         struct mbuf c;
         memcpy(&c, Data_custom_val(mb), sizeof(c));
 	caml_enter_blocking_section();
 	int n = mbuf_recv(Int_val(fd), &c, Int_val(readahead));
 	caml_leave_blocking_section();
         memcpy(Data_custom_val(mb), &c, sizeof(c));
+        Mb(mb)->busy = 0;
         if (n == 0)
                 caml_raise_end_of_file();
         if (n < 0)
@@ -809,14 +816,16 @@ stub_mbuf_recv(value fd, value mb, value readahead) {
 value
 stub_mbuf_send(value fd, value mb) {
         CAMLparam2(mb, fd);
-        if (fiber->id == 1)
+        if (fiber->id == 1 || Mb(mb)->busy)
                 caml_invalid_argument("Mbuf.send");
+        Mb(mb)->busy = 1;
         struct mbuf c;
         memcpy(&c, Data_custom_val(mb), sizeof(c));
 	caml_enter_blocking_section();
 	int n = mbuf_send(Int_val(fd), &c);
 	caml_leave_blocking_section();
         memcpy(Data_custom_val(mb), &c, sizeof(c));
+        Mb(mb)->busy = 0;
         if (n < 0)
                 uerror("writev", Nothing);
 	CAMLreturn(Val_int(n));
