@@ -660,9 +660,7 @@ stub_wait_io_ready(value fd_value, value mode_value)
  	ev_io io = { .coro = 1 };
 	ev_io_init(&io, (void *)fiber, Int_val(fd_value), mode);
 	ev_io_start(&io);
-	caml_enter_blocking_section();
-	yield();
-	caml_leave_blocking_section();
+	stub_yield(Val_unit);
 	ev_io_stop(&io);
 	return Val_unit;
 }
