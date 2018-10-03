@@ -4,6 +4,7 @@ let message =
   "On an exceptionally hot evening early in July a young man came out of the garret in which he lodged in S. Place and walked slowly, as though in hesitation, towards K. bridge."
 
 let rec io f ev sock buf ofs len =
+  let open Unix in
   let open Fiber.Unix in
   match f sock buf ofs len with
   | 0 -> raise End_of_file
@@ -16,6 +17,7 @@ let rec io f ev sock buf ofs len =
   | _ -> ()
 
 let client (latency, port) =
+  let open Unix in
   let open Fiber.Unix in
   let sock = socket PF_INET SOCK_STREAM 0 in
   connect sock (ADDR_INET (inet_addr_loopback, port)); (* TODO: add async wrapper *)
