@@ -13,6 +13,8 @@ external run : unit -> unit = "stub_fiber_run"
 external break : unit -> unit = "stub_break"
 
 external wake_id : int -> unit = "stub_wake"
+external cancel_wake_id : int -> unit = "stub_cancel_wake"
+
 external yield : unit -> unit = "stub_yield"
 external resume : 'a fiber -> unit = "stub_resume"
 
@@ -34,6 +36,9 @@ end
 
 let wake f =
   wake_id f.id
+
+let cancel_wake f =
+  cancel_wake_id f.id
 
 let create f v =
   let fiber = { id = -1; result = None; joinq = FQueue.create (); } in

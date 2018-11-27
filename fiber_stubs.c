@@ -549,6 +549,16 @@ stub_wake(value fid)
 }
 
 value
+stub_cancel_wake(value fid)
+{
+	struct fiber *f = fid2fiber(Int_val(fid));
+	if (f == NULL)
+		caml_invalid_argument("Fiber.cancel_wake");
+	fiber_cancel_wake(f);
+	return Val_unit;
+}
+
+value
 stub_fiber_id(value unit)
 {
 	return Val_int(fiber->id);

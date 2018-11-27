@@ -3,7 +3,9 @@ type 'a fiber
 val create : ('a -> 'b) -> 'a -> 'b fiber
 external yield : unit -> unit = "stub_yield"
 val resume : 'a fiber -> unit
+
 val wake : 'a fiber -> unit
+val cancel_wake : 'a fiber -> unit
 val join : 'a fiber -> 'a
 
 external run : unit -> unit = "stub_fiber_run"
