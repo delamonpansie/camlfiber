@@ -21,4 +21,6 @@ coverage: clean
 bench:
 	dune build bench/bench.exe
 	_build/default/bench/bench.exe
-.PHONY: all clean install coverage test bench
+doc:
+	dune build @doc
+.PHONY: all clean install coverage test bench doc
