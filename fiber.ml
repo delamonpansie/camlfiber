@@ -19,6 +19,8 @@ external resume : 'a fiber -> unit = "stub_resume"
 external yield_value : unit -> 'a = "stub_yield_value"
 external resume_value : 'a fiber -> 'b = "stub_yield_value"
 
+external sleep : float -> unit = "stub_fiber_sleep"
+
 module FQueue = struct
   include Queue
   let yield q =
@@ -147,30 +149,6 @@ module MVar = struct
 
   let is_empty v = v.value == None
 end
-
-module Unix = struct
-  open Unix
-
-  external stub_sleepf : float -> unit = "stub_fiber_sleep"
-  let sleepf = stub_sleepf
-  let sleep s = sleepf (float s)
-
-  let accept ?cloexec sock =
-    wait_io_ready sock EV_READ;
-    accept ?cloexec sock
-
-  let connect sock addr =
-    (try connect sock addr
-     with Unix_error (EINPROGRESS, _, _)
-        | Unix_error (EAGAIN, _, _)
-        | Unix_error (EWOULDBLOCK, _, _) -> ());
-    wait_io_ready sock EV_WRITE;
-    match getsockopt_error sock with
-      None -> ()
-    | Some error -> raise (Unix_error (error, "connect", ""))
-end
-
-
 
 let _ =
   assert(Sys.int_size == 63)

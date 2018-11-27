@@ -15,6 +15,8 @@ external resume_value : 'a fiber -> 'b = "stub_yield_value"
 type ev = EV_READ | EV_WRITE
 external wait_io_ready : Unix.file_descr -> ev -> unit  = "stub_wait_io_ready"
 
+external sleep : float -> unit = "stub_fiber_sleep"
+
 module Mutex : sig
   type t
   val create : unit -> t
@@ -41,12 +43,4 @@ module MVar : sig
   val take : 'a t -> 'a
   val take_available : 'a t -> 'a option
   val is_empty : 'a t -> bool
-end
-
-module Unix : sig
-  val sleepf : float -> unit
-  val sleep : int -> unit
-  val accept : ?cloexec:bool -> Unix.file_descr ->
-               Unix.file_descr * Unix.sockaddr
-  val connect : Unix.file_descr -> Unix.sockaddr -> unit
 end
