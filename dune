@@ -2,8 +2,17 @@
  (public_name fiber)
  (libraries unix)
  (c_names fiber_stubs fiber_ev fiber_coro)
- (c_flags -D_GNU_SOURCE -O2 -g3 -Wall)
- (wrapped false))
+ (c_flags -D_GNU_SOURCE -O2 -g3 -Wall (:include _c_flags))
+ (c_library_flags (:include _c_library_flags))
+ (wrapped false)
+ (preprocess (pps bisect_ppx -conditional)))
+
+(rule
+ (targets _c_flags)
+ (action (with-stdout-to %{targets} (bash "echo '('${C_FLAGS:-}')'"))))
+(rule
+ (targets _c_library_flags)
+ (action (with-stdout-to %{targets} (bash "echo '('${C_LIBRARY_FLAGS:-}')'"))))
 
 (rule
  (targets fiber_coro.c)

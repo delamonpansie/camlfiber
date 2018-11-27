@@ -1,0 +1,7 @@
+hello, world
+Invalid_argument("Fiber.yield")
+Invalid_argument("Fiber.unsafe_yield")
+Invalid_argument("Fiber.resume")
+Invalid_argument("Fiber.unsafe_resume")
+Invalid_argument("Fiber.wake")
+Invalid_argument("Fiber.cancel_wake")
