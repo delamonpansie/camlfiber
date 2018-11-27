@@ -66,8 +66,8 @@ let run g a =
   stub_run f;
   f.result
 
-type ev = EV_READ | EV_WRITE
-external wait_io_ready : Unix.file_descr -> ev -> unit  = "stub_wait_io_ready"
+type event = READ | WRITE
+external wait_io_ready : Unix.file_descr -> event -> unit  = "stub_wait_io_ready"
 
 module Mutex = struct
   type t = { mutable locked: bool;

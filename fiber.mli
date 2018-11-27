@@ -14,8 +14,8 @@ val break : unit -> unit
 val unsafe_yield : unit -> 'a
 val unsafe_resume : 'a fiber -> 'b -> unit
 
-type ev = EV_READ | EV_WRITE
-val wait_io_ready : Unix.file_descr -> ev -> unit
+type event = READ | WRITE
+val wait_io_ready : Unix.file_descr -> event -> unit
 
 val sleep : float -> unit
 
