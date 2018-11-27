@@ -1,7 +1,7 @@
 type 'a fiber
 
 val create : ('a -> 'b) -> 'a -> 'b fiber
-external yield : unit -> unit = "stub_yield"
+val yield : unit -> unit
 val resume : 'a fiber -> unit
 
 val wake : 'a fiber -> unit
@@ -9,15 +9,15 @@ val cancel_wake : 'a fiber -> unit
 val join : 'a fiber -> 'a
 
 val run : ('a -> 'b) -> 'a  -> 'b option
-external break : unit -> unit = "stub_break"
+val break : unit -> unit
 
-external unsafe_yield : unit -> 'a = "stub_unsafe_yield"
-external unsafe_resume : 'a fiber -> 'b -> unit = "stub_unsafe_resume"
+val unsafe_yield : unit -> 'a
+val unsafe_resume : 'a fiber -> 'b -> unit
 
 type ev = EV_READ | EV_WRITE
-external wait_io_ready : Unix.file_descr -> ev -> unit  = "stub_wait_io_ready"
+val wait_io_ready : Unix.file_descr -> ev -> unit
 
-external sleep : float -> unit = "stub_fiber_sleep"
+val sleep : float -> unit
 
 module Mutex : sig
   type t
