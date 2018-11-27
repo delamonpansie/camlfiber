@@ -9,7 +9,6 @@ type 'a fiber = { mutable id: id;
 external self_id : unit -> int = "stub_fiber_id" [@@noalloc]
 
 external stub_create : ('a -> unit) -> 'a -> int = "stub_fiber_create"
-external run : unit -> unit = "stub_fiber_run"
 external break : unit -> unit = "stub_break"
 
 external wake_id : int -> unit = "stub_wake"
@@ -55,6 +54,17 @@ let rec join f =
   | None ->
      FQueue.yield f.joinq;
      join f
+
+external stub_run : 'a fiber -> unit = "stub_fiber_run"
+
+let run g a =
+  let f = create (fun () ->
+              let v = g a in
+              break ();
+              v) () in
+  wake f;
+  stub_run f;
+  f.result
 
 type ev = EV_READ | EV_WRITE
 external wait_io_ready : Unix.file_descr -> ev -> unit  = "stub_wait_io_ready"

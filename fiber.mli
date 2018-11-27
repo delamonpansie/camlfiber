@@ -8,7 +8,7 @@ val wake : 'a fiber -> unit
 val cancel_wake : 'a fiber -> unit
 val join : 'a fiber -> 'a
 
-external run : unit -> unit = "stub_fiber_run"
+val run : ('a -> 'b) -> 'a  -> 'b option
 external break : unit -> unit = "stub_break"
 
 external unsafe_yield : unit -> 'a = "stub_unsafe_yield"
