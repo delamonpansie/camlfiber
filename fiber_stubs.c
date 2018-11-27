@@ -452,6 +452,13 @@ fiber_stack_usage(void)
   return sz;
 }
 
+static struct fiber *
+Fiber_val(value fib)
+{
+	int fid = Int_val(Field(fib, 0));
+	return fid2fiber(fid);
+}
+
 value
 stub_fiber_sleep(value tm)
 {
@@ -494,32 +501,24 @@ stub_yield(value init)
 }
 
 value
-stub_yield_value(value unit)
+stub_unsafe_yield(value unit)
 {
         CAMLparam1(unit);
         CAMLlocal1(result);
         if (fiber->id == 1)
-                caml_invalid_argument("Fiber.yield_value");
+		caml_invalid_argument("Fiber.unsafe_yield");
         caml_enter_blocking_section();
-	result = (uintptr_t)yield();
+	result = (intptr_t)yield();
 	caml_leave_blocking_section();
         CAMLreturn(result);
-}
-
-static struct fiber *
-Fiber_val(value fib, const char *name)
-{
-        int fid = Int_val(Field(fib, 0));
-	struct fiber *f = fid2fiber(fid);
-	if (f == NULL)
-		caml_invalid_argument(name);
-        return f;
 }
 
 value
 stub_resume(value fib)
 {
-	struct fiber *f = Fiber_val(fib, "Fiber.resume");
+	struct fiber *f = Fiber_val(fib);
+	if (f == NULL || f->caller != NULL)
+		caml_invalid_argument("Fiber.resume");
 	caml_enter_blocking_section();
 	resume(f, NULL);
 	caml_leave_blocking_section();
@@ -527,10 +526,12 @@ stub_resume(value fib)
 }
 
 value
-stub_resume_value(value fib, value arg)
+stub_unsafe_resume(value fib, value arg)
 {
         CAMLparam2(fib, arg);
-	struct fiber *f = Fiber_val(fib, "Fiber.resume_value");
+	struct fiber *f = Fiber_val(fib);
+	if (f == NULL || f->caller != NULL)
+		caml_invalid_argument("Fiber.unsafe_resume");
 	caml_enter_blocking_section();
 	resume(f, (void *)arg);
 	caml_leave_blocking_section();

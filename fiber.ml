@@ -16,8 +16,8 @@ external wake_id : int -> unit = "stub_wake"
 external yield : unit -> unit = "stub_yield"
 external resume : 'a fiber -> unit = "stub_resume"
 
-external yield_value : unit -> 'a = "stub_yield_value"
-external resume_value : 'a fiber -> 'b = "stub_yield_value"
+external unsafe_yield : unit -> 'a = "stub_unsafe_yield"
+external unsafe_resume : 'a fiber -> 'b -> unit = "stub_unsafe_resume"
 
 external sleep : float -> unit = "stub_fiber_sleep"
 

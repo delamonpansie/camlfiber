@@ -9,8 +9,8 @@ val join : 'a fiber -> 'a
 external run : unit -> unit = "stub_fiber_run"
 external break : unit -> unit = "stub_break"
 
-external yield_value : unit -> 'a = "stub_yield_value"
-external resume_value : 'a fiber -> 'b = "stub_yield_value"
+external unsafe_yield : unit -> 'a = "stub_unsafe_yield"
+external unsafe_resume : 'a fiber -> 'b -> unit = "stub_unsafe_resume"
 
 type ev = EV_READ | EV_WRITE
 external wait_io_ready : Unix.file_descr -> ev -> unit  = "stub_wait_io_ready"
