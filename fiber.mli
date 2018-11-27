@@ -62,11 +62,13 @@ type 'a fiber
 (** a fiber type. *)
 
 val create : ('a -> 'b) -> 'a -> 'b fiber
-(** [create f arg] creates a fiber. A fiber can be in one of the
-   following states: sleeping, running and dead. Just after creation a
-   fiber will be in sleeping state and will execute [f arg] after
-   being resumed by {!resume}. Then [f] returns a fiber is dead. The
-   return value of [f] can be read by calling {!join}.
+(** [create f arg] creates a fiber.
+
+   A fiber can be in one of the following states: [sleeping],
+   [running] or [dead]. A fiber will initially be in state
+   {!sleeping}.  Upon {!resume}, the fiber will execute [f arg]. When
+   [f] returns the fiber enters state [dead].  return value of [f] can
+   be obtained by calling {!join}.
 
    Current implementation allocates 112 pages of stack and 16 pages of
    guard zone. Graceful stack overflow detection is not (yet)
@@ -76,16 +78,20 @@ val create : ('a -> 'b) -> 'a -> 'b fiber
    Fiber context creation is a relatively expensive process and
    therefore library caches unused contexts of dead fibers. The cache
    size is unbound, be careful when creating a lot of short living
-   fibers. *)
+   fibers.
+
+   Exception behavior is similar to the vanilla OCaml. You can [raise]
+   exception inside a fiber and catch it with a [try ... with ...].
+   Uncaught exception in a fiber will terminate the whole program. *)
 
 val yield : unit -> unit
-(** [yield] yields back to caller (a fiber issued
+(** [yield] yields control to the caller (the fiber which issued
    {!resume}). Consequently, it is an error to call [yield] from
    initial context, since there is no caller. *)
 
 val resume : 'a fiber -> unit
 (** [resume fb] resumes the fiber [fb], that is: transfer execution
-   context to it. Trying to resume dead fiber will raise an exception
+   context to it. Trying to resume dead fiber will raise
    [Invalid_argument "Fiber.resume"]. *)
 
 (** {2 Event loop}
@@ -127,6 +133,8 @@ val wait_io_ready : Unix.file_descr -> event -> unit
 val sleep : float -> unit
 (** [sleep s] suspends the current fiber for [s] seconds. *)
 
+(**/**)
+
 (** {2 Unsafe}
 
    Value passing variants of {!yield} and {!resume}. Please note, that
@@ -141,6 +149,8 @@ val unsafe_resume : 'a fiber -> 'b -> unit
 (** [unsafe_resume fb value] resumes [fb] and passes [value] to
    it. This [value] will be returned inside [fb] as result of
    [unsafe_yield] call. *)
+
+(**/**)
 
 (** {2 Synchronisation} *)
 
