@@ -430,7 +430,7 @@ fiber_leave_blocking_section(void)
 static int
 fiber_try_leave_blocking_section(void)
 {
-	return 0;
+	return 1;
 }
 
 static uintnat
