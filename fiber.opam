@@ -1,15 +1,21 @@
 opam-version: "2.0"
 name: "camlfiber"
+synopsis: "Fast native fibers for OCaml"
+description: """
+Fibers are implemented by tying together libcoro and OCaml's GC
+hooks. This design allows allocation free context switches with decent
+performance.
+"""
 version: "0.1.0"
 maintainer: "Yuriy Vostrikov <delamonpansie@gmail.com>"
 authors: "Yuriy Vostrikov <delamonpansie@gmail.com>"
 homepage: "https://github.com/delamonpansie/camlfiber"
 bug-reports: "https://github.com/delamonpansie/camlfiber"
 license: "BSD"
-dev-repo: "https://github.com/delamonpansie/camlfiber.git"
-build: [ [ dune "build" ] ]
-install: [ dune "install" ]
+dev-repo: "git+https://github.com/delamonpansie/camlfiber.git"
+build: [ [ make "build" ] ]
+install: [ make "install" ]
 remove: [ "ocamlfind" "remove" "fiber" ]
 depends: [
-  "ocamlfind" "jbuild" {build}
+  "dune" {build & > "1.5"}
 ]
