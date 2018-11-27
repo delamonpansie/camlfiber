@@ -5,7 +5,8 @@
    GC hooks. This design allows {e allocation free} context switches
    with decent performance. For example, i7-8750H running Linux can
    perform about 13.7M fiber context switches per second. If you want
-   to measure it by yourself just run [make bench]. *)
+   to measure it by yourself just run [make all bench] from the source
+   directory. *)
 
 (** {2 Basic API}
 

@@ -5,7 +5,7 @@ build install:
 clean:
 	dune $@
 	rm -rf _coverage
-test:
+test: build
 	dune runtest
 build: libev/config.h
 libev/config.h:
@@ -18,7 +18,7 @@ coverage: clean
 		`find _build/default/test -name "bisect*.out"`
 	lcov --output-file _coverage/c/fiber.cov --capture --directory _build/default
 	genhtml --output-directory _coverage/c _coverage/c/fiber.cov
-bench:
+bench:	build
 	dune build bench/bench.exe
 	_build/default/bench/bench.exe
 doc:
