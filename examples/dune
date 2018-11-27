@@ -1,0 +1,13 @@
+(executable
+ (name socket_io)
+ (modules socket_io)
+ (libraries fiber))
+
+(executable
+ (name producer_consumer)
+ (modules producer_consumer)
+ (libraries fiber))
+
+(alias
+ (name default)
+ (deps socket_io.exe producer_consumer.exe))
