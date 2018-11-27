@@ -110,7 +110,7 @@ val cancel_wake : 'a fiber -> unit
 
 val join : 'a fiber -> 'a
 (** [join fb] suspends the current fiber until [fb] is dead and returns
-   the return value of it. *)
+   the return value of it. It is permitted to call [join fb] several times. *)
 
 type event = READ | WRITE
 val wait_io_ready : Unix.file_descr -> event -> unit
