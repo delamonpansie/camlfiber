@@ -18,4 +18,7 @@ coverage: clean
 		`find _build/default/test -name "bisect*.out"`
 	lcov --output-file _coverage/c/fiber.cov --capture --directory _build/default
 	genhtml --output-directory _coverage/c _coverage/c/fiber.cov
-.PHONY: all clean install coverage test
+bench:
+	dune build bench/bench.exe
+	_build/default/bench/bench.exe
+.PHONY: all clean install coverage test bench
