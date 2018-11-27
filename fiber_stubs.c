@@ -64,13 +64,6 @@
 #define mh_val_t void *
 #include "mhash.h"
 
-static void
-coro_free(struct coro *coro)
-{
-	if (coro->mmap != MAP_FAILED)
-		munmap(coro->mmap, coro->mmap_size);
-}
-
 static struct coro *
 coro_alloc(struct coro *coro, void (*f) (void *), void *data)
 {
@@ -225,19 +218,6 @@ fiber_sleep(ev_tstamp delay)
 }
 
 
-/** Wait for a forked child to complete. */
-
-int
-wait_for_child(pid_t pid)
-{
-	ev_child w = { .coro = 1 };
-	ev_child_init(&w, (void *)fiber, pid, 0);
-	ev_child_start(&w);
-	yield();
-	ev_child_stop(&w);
-	return WEXITSTATUS(w.rstatus);
-}
-
 struct fiber *
 fid2fiber(int fid)
 {
@@ -296,7 +276,7 @@ fiber_loop(void *data __attribute__((unused)))
 }
 
 int
-fiber_create(const char *name, value cb, value arg)
+fiber_create(value cb, value arg)
 {
 	struct fiber *new = NULL;
 
@@ -318,7 +298,7 @@ fiber_create(const char *name, value cb, value arg)
 
 	new->cb = cb;
 	new->arg = arg;
-	strncpy(new->name, name, 19);
+	memset(new->name, 0, sizeof(new->name));
 
         resume(new, NULL);
 
@@ -326,21 +306,6 @@ fiber_create(const char *name, value cb, value arg)
 		return Val_int(0);
 
 	return new->id;
-}
-
-void
-fiber_free_all()
-{
-	struct fiber *f, *tmp;
-	SLIST_FOREACH_SAFE(f, &fibers, link, tmp) {
-		if (f == fiber) /* do not destroy running fiber */
-			continue;
-		if (f == sched)
-			continue;
-
-		coro_free(&f->coro);
-		free(f);
-	}
 }
 
 static void
@@ -368,60 +333,6 @@ fiber_wakeup_pending(void)
 		fiber_async_send();
 }
 
-ssize_t
-fiber_read(int fd, void *buf, size_t count)
-{
-	ssize_t r, done = 0;
-	ev_io io = { .coro = 1 };
-	ev_io_init(&io, (void *)fiber, fd, EV_READ);
-	ev_io_start(&io);
-
-	while (count > done) {
-		yield();
-		r = read(fd, buf + done, count - done);
-
-		if (r <= 0) {
-			if (r < 0) {
-				if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-					continue;
-				perror("read");
-				break;
-			}
-			if (r == 0)
-				break;
-		}
-		done += r;
-	}
-	ev_io_stop(&io);
-
-	return done;
-}
-
-ssize_t
-fiber_write(int fd, const void *buf, size_t count)
-{
-	int r;
-	unsigned int done = 0;
-	ev_io io = { .coro = 1 };
-	ev_io_init(&io, (void *)fiber, fd, EV_WRITE);
-	ev_io_start(&io);
-
-	do {
-		yield();
-		if ((r = write(fd, buf + done, count - done)) < 0) {
-			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
-				continue;
-                        if (done == 0)
-                                done = r;
-                        perror("write");
-			break;
-		}
-		done += r;
-	} while (count != done);
-	ev_io_stop(&io);
-
-	return done;
-}
 
 typedef void (*scanning_action) (value, value *);
 
@@ -551,12 +462,12 @@ stub_fiber_sleep(value tm)
 }
 
 value
-stub_fiber_create(value name, value cb, value arg)
+stub_fiber_create(value cb, value arg)
 {
 	CAMLparam2(cb, arg);
 	CAMLlocal1(fib);
 	caml_enter_blocking_section();
- 	fib = Val_int(fiber_create(String_val(name), cb, arg));
+	fib = Val_int(fiber_create(cb, arg));
 	caml_leave_blocking_section();
 	CAMLreturn(fib);
 }
@@ -665,13 +576,6 @@ stub_wait_io_ready(value fd_value, value mode_value)
 	return Val_unit;
 }
 
-static void
-panic()
-{
-	perror("ev");
-	exit(1);
-}
-
 
 __attribute__((constructor))
 static void
@@ -692,7 +596,6 @@ fiber_init(void)
 	fiber = sched;
 
         ev_default_loop(ev_recommended_backends() | EVFLAG_SIGNALFD);
-	ev_set_syserr_cb(panic);
 
 	ev_prepare_init(&wake_prep, (void *)fiber_wakeup_pending);
 	ev_set_priority(&wake_prep, -1);

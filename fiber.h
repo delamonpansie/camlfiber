@@ -66,7 +66,6 @@ struct fiber {
 
 	char name[20];
 	uintptr_t cb, arg;
-	uintptr_t ret;
 };
 
 extern struct fiber *fiber, *sched;

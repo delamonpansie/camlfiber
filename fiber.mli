@@ -1,6 +1,6 @@
 type 'a fiber
 
-val create : ?name:string -> ('a -> 'b) -> 'a -> 'b fiber
+val create : ('a -> 'b) -> 'a -> 'b fiber
 external yield : unit -> unit = "stub_yield"
 val resume : 'a fiber -> unit
 val wake : 'a fiber -> unit

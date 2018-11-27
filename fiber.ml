@@ -8,7 +8,7 @@ type 'a fiber = { mutable id: id;
 
 external self_id : unit -> int = "stub_fiber_id" [@@noalloc]
 
-external stub_create : string -> ('a -> unit) -> 'a -> int = "stub_fiber_create"
+external stub_create : ('a -> unit) -> 'a -> int = "stub_fiber_create"
 external run : unit -> unit = "stub_fiber_run"
 external break : unit -> unit = "stub_break"
 
@@ -35,13 +35,13 @@ end
 let wake f =
   wake_id f.id
 
-let create ?(name="") f v =
+let create f v =
   let fiber = { id = -1; result = None; joinq = FQueue.create (); } in
   let wrap v =
     fiber.result <- Some (f v);
     FQueue.wake fiber.joinq
   in
-  fiber.id <- stub_create name wrap v;
+  fiber.id <- stub_create wrap v;
   fiber
 
 let rec join f =
