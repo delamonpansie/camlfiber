@@ -244,8 +244,6 @@ static void
 fiber_zombificate(struct fiber *f)
 {
 	strcpy(f->name, "zombie");
-	f->cb = 0;
-	f->arg = 0;
 	unregister_id(f);
 	f->id = 0;
 	// TODO: trash fiber->last_retaddr and friends
@@ -269,7 +267,10 @@ fiber_loop(void *data __attribute__((unused)))
 {
 	while (42) {
 		assert(fiber != NULL && fiber->id != 0);
-                fiber_trampoline(fiber->cb, fiber->arg);
+		value cb = fiber->cb,
+		     arg = fiber->arg;
+		fiber->cb = fiber->arg = 0;
+		fiber_trampoline(cb, arg);
 		fiber_zombificate(fiber);
 		yield();	/* give control back to scheduler */
 	}
@@ -299,12 +300,6 @@ fiber_create(value cb, value arg)
 	new->cb = cb;
 	new->arg = arg;
 	memset(new->name, 0, sizeof(new->name));
-
-        resume(new, NULL);
-
-	if (new->id == 0) /* f() exited without ever calling yield() */
-		return Val_int(0);
-
 	return new->id;
 }
 
@@ -363,17 +358,23 @@ static uintnat (*prev_stack_usage_hook)(void);
 
 static void fiber_scan_roots(struct fiber *f, scanning_action action)
 {
-        // FIXME: what will happen for non ocaml fiber here?
-        (*action)(f->backtrace_last_exn, &f->backtrace_last_exn);
+	if (f->cb) {
+		/* fiber is not fully initialized yet */
+		assert(f->arg);
+		(*action)(f->cb, &f->cb);
+		(*action)(f->arg, &f->arg);
+	} else {
+		(*action)(f->backtrace_last_exn, &f->backtrace_last_exn);
 
-        /* Don't rescan the stack of the current fiber, it was done already */
-        if (f == fiber)
-                return;
+		/* Don't rescan the stack of the current fiber, it was done already */
+		if (f == fiber)
+			return;
 
-        assert(f->last_retaddr > 0xffff);
-        caml_do_local_roots(action,
-                            f->bottom_of_stack, f->last_retaddr,
-                            f->gc_regs, f->local_roots);
+		assert(f->last_retaddr > 0xffff);
+		caml_do_local_roots(action,
+				    f->bottom_of_stack, f->last_retaddr,
+				    f->gc_regs, f->local_roots);
+	}
 }
 
 static void fiber_all_scan_roots(scanning_action action)

@@ -65,7 +65,7 @@ struct fiber {
 	intptr_t caml_backtrace_last_exn;
 
 	char name[20];
-	uintptr_t cb, arg;
+	intptr_t cb, arg;
 };
 
 extern struct fiber *fiber, *sched;
