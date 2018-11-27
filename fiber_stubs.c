@@ -276,7 +276,7 @@ fiber_loop(void *data __attribute__((unused)))
 	}
 }
 
-int
+static struct fiber *
 fiber_create(value cb, value arg)
 {
 	struct fiber *new = NULL;
@@ -300,7 +300,7 @@ fiber_create(value cb, value arg)
 	new->cb = cb;
 	new->arg = arg;
 	memset(new->name, 0, sizeof(new->name));
-	return new->id;
+	return new;
 }
 
 static void
@@ -475,9 +475,9 @@ stub_fiber_create(value cb, value arg)
 	CAMLparam2(cb, arg);
 	CAMLlocal1(fib);
 	caml_enter_blocking_section();
-	fib = Val_int(fiber_create(cb, arg));
+	struct fiber *f = fiber_create(cb, arg);
 	caml_leave_blocking_section();
-	CAMLreturn(fib);
+	CAMLreturn(Val_int(f->id));
 }
 
 value
